@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Vue-js | Django | Crud App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Crud app made with the vue js and django">
+
+    <meta name="keywords" content="vuejs, django, crudapp, restapi">
+
+    <!--bootstrap-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+    <div id="starting">
+        <div class="container">
+            <div class="row">
+                <h1> List of Cruds
+                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                        data-target="#addCrudModal">Add</button>
+                </h1>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Notification DateTime</th>
+                            <th scope="col">Creation DateTime</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="crud in cruds">
+                            <th scope="row">${crud.crud_id}</th>
+                            <td>${crud.crud_title}</td>
+                            <td>${crud.crud_notification_datetime | formatDate}</td>
+                            <td>${crud.crud_creation_datetime | formatDate}</td>
+                            <td>
+                                <button class="btn btn-info" v-on:click="getCrud(crud.crud_id)">Edit</button>
+                                <button class="btn btn-danger" v-on:click="deleteCrud(crud.crud_id)">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!--Add Crud Modal-->
+                <div class="modal fade" id="addCrudModal" tabindex="-1" role="dialog" aria-labelledby="modalLongTitle"
+                    aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalLongTitle">ADD CRUD</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form id="test123" v-on:submit.prevent="addCrud()">
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="crud_title">Crud Title</label>
+                                        <input type="text" class="form-control" id="crud_title"
+                                            placeholder="Enter Crud Title" v-model="newCrud.crud_title"
+                                            required="required">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="crud_notification_datetime">Notification DateTime</label>
+                                        <input type="datetime-local" class="form-control"
+                                            id="crud_notification_datetime" v-model="newCrud.crud_notification_datetime"
+                                            required="required">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="loading" v-if="loading===true">Loading&#8230;</div>
+                </div>
+                <!-- End of add crud modal -->
+                <!-- Edit crud modal -->
+                <div class="modal fade" id="editCrudModal" tabindex="-1" role="dialog" aria-labelledby="modalLongTitle"
+                    aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalLongTitle">EDIT CRUD</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form v-on:submit.prevent="updateCrud()">
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="crud_title">Crud Title</label>
+                                        <input type="text" class="form-control" id="crud_title"
+                                            placeholder="Enter Crud Title" v-model="currentCrud.crud_title"
+                                            required="required">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="notification_datetime">Notification DateTime</label>
+                                        <input type="datetime-local" class="form-control" id="notification_datetime"
+                                            v-model="currentCrud.crud_notification_datetime" required="required">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="loading" v-if="loading===true">Loading&#8230;</div>
+                </div>
+                <!--End of edit crud modal-->
+            </div>
+        </div>
+        <div class="loading" v-if="loading===true">Loading&#8230;</div>
+    </div>
+
+    <!--bootstrap-->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <!--vue.js files-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.13/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.3.5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+    <script type="text/javascript">
+        Vue.filter('formatDate', function (value) {
+            if (value)
+                return moment(String(value)).format('MM/DD hh:mmA')
+        });
+
+        new Vue({
+            el: '#starting',
+            delimiters: ['${', '}'],
+            data: {
+                cruds: [],
+                loading: false,
+                currentCrud: {},
+                message: null,
+                newCrud: { 'crud_title': null, 'crud_notification_datetime': null }
+            },
+            mounted: function () {
+                this.getCruds();
+            },
+            methods: {
+                dateTimeLocalFormat: function (dateTime) {
+                    var year = new Number(dateTime.getFullYear()).toString();
+                    var month = new Number(dateTime.getMonth() + 1).toLocaleString("en-US", { minimumIntegerDigits: 2 });
+                    var day = new Number(dateTime.getDate()).toLocaleString("en-US", { minimumIntegerDigits: 2 });
+                    var hours = new Number(dateTime.getHours()).toLocaleString("en-US", { minimumIntegerDigits: 2 });
+                    var minutes = new Number(dateTime.getMinutes()).toLocaleString("en-US", { minimumIntegerDigits: 2 });
+
+                    return year + "-" + month + "-" + day + "T" + hours + ":" + minutes;
+                },
+                getCruds: function () {
+                    this.loading = true;
+                    this.$http.get('/api/crud/')
+                        .then((response) => {
+                            this.cruds = response.data;
+                            this.loading = false;
+                        })
+                        .catch((err) => {
+                            this.loading = false;
+                            console.log(err);
+                        })
+                },
+                getCrud: function (id) {
+                    this.loading = true;
+                    this.$http.get('/api/crud/' + id)
+                        .then((response) => {
+                            this.currentCrud = response.data;
+                            var dateObj = new Date(this.currentCrud.crud_notification_datetime);
+                            this.currentCrud.crud_notification_datetime = this.dateTimeLocalFormat(dateObj);
+                            $("#editCrudModal").modal('show');
+                            this.loading = false;
+                        })
+                        .catch((err) => {
+                            this.loading = false;
+                            console.log(err);
+                        })
+                },
+                addCrud: function () {
+                    this.loading = true;
+                    this.newCrud.crud_notification_datetime = new Date(this.newCrud.crud_notification_datetime);
+                    this.$http.post('/api/crud/', this.newCrud)
+                        .then((response) => {
+                            this.loading = false;
+                            var dateObj = new Date(this.newCrud.crud_notification_datetime);
+                            this.newCrud.crud_notification_datetime = this.dateTimeLocalFormat(dateObj);
+                            this.getCruds();
+                            $("#addCrudModal").modal('hide');
+                        })
+                        .catch((err) => {
+                            this.loading = false;
+                            console.log(err);
+                        })
+                },
+                updateCrud: function () {
+                    this.loading = true;
+                    this.currentCrud.crud_notification_datetime = new Date(this.currentCrud.crud_notification_datetime);
+                    // Important for PUT to end with '/'
+                    this.$http.put('/api/crud/' + this.currentCrud.crud_id + '/', this.currentCrud)
+                        .then((response) => {
+                            this.loading = false;
+                            this.currentCrud = response.data;
+                            var dateObj = new Date(this.currentCrud.crud_notification_datetime);
+                            this.currentCrud.crud_notification_datetime = this.dateTimeLocalFormat(dateObj);
+                            this.getCruds();
+                            $("#editCrudModal").modal('hide');
+                        })
+                        .catch((err) => {
+                            this.loading = false;
+                            console.log(err);
+                        })
+                },
+                deleteCrud: function (id) {
+                    this.loading = true;
+                    this.$http.delete('/api/crud/' + id)
+                        .then((response) => {
+                            this.loading = false;
+                            this.getCruds();
+                        })
+                        .catch((err) => {
+                            this.loading = false;
+                            console.log(err);
+                        })
+                },
+            }
+        });
+    </script>
+</body>
+
+</html>
