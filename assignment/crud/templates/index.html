@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+{% load static %}
 <head>
     <meta charset="utf-8">
     <title>Vue-js | Django | Crud App</title>
@@ -56,7 +56,7 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <form id="test123" v-on:submit.prevent="addCrud()">
+                            <form v-on:submit.prevent="addCrud()">
                                 <div class="modal-body">
                                     <div class="form-group">
                                         <label for="crud_title">Crud Title</label>
@@ -132,6 +132,8 @@
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
 
+    <script src="{% static 'registerSw.js' %}"></script>
+
     <!--vue.js files-->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.13/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.3.5"></script>
@@ -202,6 +204,8 @@
                             this.newCrud.crud_notification_datetime = this.dateTimeLocalFormat(dateObj);
                             this.getCruds();
                             $("#addCrudModal").modal('hide');
+
+                            displayNotification(this.newCrud.crud_title, dateObj);
                         })
                         .catch((err) => {
                             this.loading = false;
@@ -219,6 +223,8 @@
                             var dateObj = new Date(this.currentCrud.crud_notification_datetime);
                             this.currentCrud.crud_notification_datetime = this.dateTimeLocalFormat(dateObj);
                             this.getCruds();
+
+                            displayNotification(this.currentCrud.crud_title, dateObj);
                             $("#editCrudModal").modal('hide');
                         })
                         .catch((err) => {
